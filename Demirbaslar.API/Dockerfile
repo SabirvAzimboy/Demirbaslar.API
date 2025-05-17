@@ -9,19 +9,20 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 
 # 2.1 Копируем файлы проекта и восстанавливаем зависимости
-COPY ["Demirbaslar.API.csproj", "."]
-RUN dotnet restore "Demirbaslar.API.csproj"
+COPY ["Demirbaslar.API/Demirbaslar.API.csproj", "Demirbaslar.API/"]
+RUN dotnet restore "Demirbaslar.API/Demirbaslar.API.csproj"
 
 # 2.2 Копируем весь код и собираем
 COPY . .
-RUN dotnet build "Demirbaslar.API.csproj" -c Release -o /app/build
+WORKDIR "/src/Demirbaslar.API"
+RUN dotnet build -c Release -o /app/build
 
 # 3. Публикуем приложение
 FROM build AS publish
-RUN dotnet publish "Demirbaslar.API.csproj" -c Release -o /app/publish
+RUN dotnet publish -c Release -o /app/publishj" -c Release -o /app/publish
 
 # 4. Финальный образ
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
