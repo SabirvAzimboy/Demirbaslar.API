@@ -1,0 +1,6 @@
+@Demirbaslar.API_HostAddress = http://localhost:5108
+
+GET {{Demirbaslar.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
