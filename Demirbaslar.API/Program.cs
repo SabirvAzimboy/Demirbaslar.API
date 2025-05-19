@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Конфигурация порта
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://*:{port}");
 
+// Добавление сервисов
 builder.Services.AddHealthChecks();
-
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -25,34 +25,31 @@ builder.Services.AddIdentity<AppUsers, IdentityRole>()
     .AddDefaultTokenProviders();
 
 // Настройка политик авторизации
-builder.Services.AddAuthorization(options =>
+builder.Services.AddAuthorization(options => 
 {
-    options.AddPolicy("AdminOnly", policy =>
-        policy.RequireRole("Admin"));
-
-    options.AddPolicy("AssetManager", policy =>
-        policy.RequireAssertion(context =>
-            context.User.IsInRole("Admin") ||
-            context.User.IsInRole("AssetManager")));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("AssetManager", policy => policy.RequireAssertion(context =>
+        context.User.IsInRole("Admin") || context.User.IsInRole("AssetManager")));
 });
 
 var app = builder.Build();
 
-// Применение миграций БД (добавлено здесь)
-using (var scope = app.Services.CreateScope())
+// Применение миграций
+try 
 {
-     try
+    using (var scope = app.Services.CreateScope())
     {
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Ошибка при применении миграций: {ex.Message}");
+        var services = scope.ServiceProvider;
+        var dbContext = services.GetRequiredService<AppDbContext>();
+        dbContext.Database.Migrate();
     }
 }
+catch (Exception ex)
+{
+    Console.WriteLine($"Ошибка при применении миграций: {ex.Message}");
+}
 
-// Configure the HTTP request pipeline.
+// Конфигурация pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
