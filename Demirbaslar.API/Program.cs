@@ -41,8 +41,15 @@ var app = builder.Build();
 // Применение миграций БД (добавлено здесь)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate(); // Автоматически применяет миграции при старте
+     try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Ошибка при применении миграций: {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline.
