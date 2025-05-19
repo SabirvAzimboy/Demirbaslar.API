@@ -35,18 +35,28 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 
 // Применение миграций
-try 
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    
+    try 
     {
-        var services = scope.ServiceProvider;
-        var dbContext = services.GetRequiredService<AppDbContext>();
-        dbContext.Database.Migrate();
+        // Проверка подключения
+        if (!db.Database.CanConnect())
+        {
+            Console.WriteLine("?? Не удалось подключиться к БД. Проверьте строку подключения.");
+            throw new Exception("Database connection failed");
+        }
+
+        // Применение миграций
+        db.Database.Migrate();
+        Console.WriteLine("? Миграции успешно применены");
     }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Ошибка при применении миграций: {ex.Message}");
+    catch (Exception ex)
+    {
+        Console.WriteLine($"? Ошибка БД: {ex.Message}");
+        throw; // Прерываем запуск приложения
+    }
 }
 
 // Конфигурация pipeline
