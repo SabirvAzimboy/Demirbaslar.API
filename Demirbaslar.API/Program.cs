@@ -19,7 +19,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Настройка Identity (ОСНОВНАЯ И ЕДИНСТВЕННАЯ настройка аутентификации)
+// Настройка Identity
 builder.Services.AddIdentity<AppUsers, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
@@ -38,6 +38,13 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+// Применение миграций БД (добавлено здесь)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate(); // Автоматически применяет миграции при старте
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -46,13 +53,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Middleware pipeline (ВАЖЕН ПОРЯДОК!)
-app.UseAuthentication(); // Должно быть перед UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.UseHealthChecks("/health");
 
 app.Run();
