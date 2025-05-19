@@ -54,5 +54,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.UseHealthChecks("/health");
+app.Run($"http://0.0.0.0:{Environment.GetEnvironmentVariable("PORT") ?? "8080"}");
 
 app.Run();
