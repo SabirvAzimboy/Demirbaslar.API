@@ -5,6 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8888";
+builder.WebHost.UseUrls($"http://*:{port}");
+
+builder.Services.AddHealthChecks();
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -47,5 +52,7 @@ app.UseAuthentication(); // Должно быть перед UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseHealthChecks("/health");
 
 app.Run();

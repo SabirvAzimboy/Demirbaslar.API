@@ -1,5 +1,9 @@
 # Базовый образ для .NET 8.0
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS build
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
+	clang zlibig-dev
+ARG BUILD_CONFIGURATIN=Release
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
@@ -22,6 +26,7 @@ WORKDIR "/src/Demirbaslar.API"
 RUN dotnet build -c Release -o /app/build
 
 FROM build AS publish
+ARG BUILD_CONFIGURATIN=Release
 RUN dotnet publish -c Release -o /app/publish
 
 FROM base AS final
